@@ -54,13 +54,13 @@ _A_<sub>m</sub> = BUS\_TRANS\_MEM.ALL\_AGENTS （公式 5.1）
 
 _A_<sub>m</sub><sup>CPU</sup> = ∑<sub>_n_=0</sub><sup>_H_</sup> BUS\_TRANS\_MEM.THIS\_AGENT<sub>cpu\_bus\_agent\#_n_</sub>, _H_ ∈ N, _H_ = 宿主 CPU 总线代理数量 - 1 （公式 5.2）
 
-<SPAN style="TEXT-DECORATION: overline">_A_<sub>m</sub><sup>CPU</sup></SPAN> = _A_<sub>m</sub> - _A_<sub>m</sub><sup>CPU</sup> ⇔ _A_<sub>m</sub> = _A_<sub>m</sub><sup>CPU</sup> + <SPAN style="TEXT-DECORATION: overline">_A_<sub>m</sub><sup>CPU</sup></SPAN> （公式 5.3）
+~~_A_<sub>m</sub><sup>CPU</sup>~~ = _A_<sub>m</sub> - _A_<sub>m</sub><sup>CPU</sup> ⇔ _A_<sub>m</sub> = _A_<sub>m</sub><sup>CPU</sup> + ~~_A_<sub>m</sub><sup>CPU</sup>~~ （公式 5.3）
 
 > 图 5.2 Intel 四核处理器
 
 > 四核处理器包含两个总线代理，每个总线代理包含两个核心，参见 (a)。当同时利用两个总线代理，即 (b) 中的 `BA#0` 和 `BA#1` 对 `BUS_TRANS_MEM` 事件进行计数时，`THIS_AGENT` 名称扩展带来了显著的区别。(b) 中的内核日志同样描述了对应于名称扩展 `ALL_AGENTS` 的值在同一个计数器查询迭代内基本相同。
 
-这意味着我们可以减去由所有处理器核心上运行着的用户空间和内核空间进程所造成的所有合法传输。注意，根据我们的信任和对手模型（参见 2.7 节），测量得到的宿主 CPU 的总线活动值和预期的宿主 CPU 总线活动值相同（_A_<sub>e</sub><sup>CPU</sup> = _A_<sub>m</sub><sup>CPU</sup>），由于运行于宿主 CPU 上的所有进程都可信。类似地，预期的总线活动值也可被分割，即 _A_<sub>e</sub> = _A_<sub>e</sub><sup>CPU</sup> + <SPAN style="TEXT-DECORATION: overline">_A_<sub>e</sub><sup>CPU</sup></SPAN>。
+这意味着我们可以减去由所有处理器核心上运行着的用户空间和内核空间进程所造成的所有合法传输。注意，根据我们的信任和对手模型（参见 2.7 节），测量得到的宿主 CPU 的总线活动值和预期的宿主 CPU 总线活动值相同（_A_<sub>e</sub><sup>CPU</sup> = _A_<sub>m</sub><sup>CPU</sup>），由于运行于宿主 CPU 上的所有进程都可信。类似地，预期的总线活动值也可被分割，即 _A_<sub>e</sub> = _A_<sub>e</sub><sup>CPU</sup> + ~~_A_<sub>e</sub><sup>CPU</sup>~~。
 
 #### 通用主机控制器接口控制器
 
@@ -94,7 +94,7 @@ _通用主机控制器接口_（UHCI）控制器是一种用于 _通用串行总
 
 ### 5.2.2 总线代理运行时监视器
 
-有了我们于 5.2.1 节引入的总线主控分析，我们就能够以 Linux 内核模块的形式实现 BARM。在本节中，我们描述了我们是如何实现一种能够永久地监控并且评估总线活动地监控策略的。性能监视单元已经被配置为测量 `BUS_TRANS_MEM` 事件。对于 _A_<sub>m</sub>，即 _A_<sub>m</sub><sup>CPU</sup> 和 <SPAN style="TEXT-DECORATION: overline">_A_<sub>m</sub><sup>CPU</sup></SPAN> 的永久监控采用如下步骤实现：
+有了我们于 5.2.1 节引入的总线主控分析，我们就能够以 Linux 内核模块的形式实现 BARM。在本节中，我们描述了我们是如何实现一种能够永久地监控并且评估总线活动地监控策略的。性能监视单元已经被配置为测量 `BUS_TRANS_MEM` 事件。对于 _A_<sub>m</sub>，即 _A_<sub>m</sub><sup>CPU</sup> 和 ~~_A_<sub>m</sub><sup>CPU</sup>~~ 的永久监控采用如下步骤实现：
 
 1. 重置计数器并且存储所有非 CPU 总线主控（例如 UHCI、FR、ME、硬盘控制器（HD）、以太网控制器（ETH）、视频控制器（VC） 等）的初始 I/O 统计数据。
 2. 开始对于一定时间 _t_ 的计数（采用高精度计时器实现）。
@@ -102,11 +102,11 @@ _通用主机控制器接口_（UHCI）控制器是一种用于 _通用串行总
 4. 存储对应于 _A_<sub>m</sub> 和 _A_<sub>m</sub><sup>CPU</sup> 的计数器的值（参见 5.2.1 节），并且更新所有非 CPU 总线代理的 I/O 统计数据
 5. 继续步骤 (1)，并且通过唤醒对应的评估内核线程来并行确定 _A_<sub>e</sub>。
 
-我们还需要比较测量得到的总线活动和预期总线活动。BARM 在按照如下步骤执行评估内核线程时比较 <SPAN style="TEXT-DECORATION: overline">_A_<sub>m</sub><sup>CPU</sup></SPAN> 和 <SPAN style="TEXT-DECORATION: overline">_A_<sub>e</sub><sup>CPU</sup></SPAN>：
+我们还需要比较测量得到的总线活动和预期总线活动。BARM 在按照如下步骤执行评估内核线程时比较 ~~_A_<sub>m</sub><sup>CPU</sup>~~ 和 ~~_A_<sub>e</sub><sup>CPU</sup>~~：
 
-1. 利用所存储的对应于 _A_<sub>m</sub> 和 _A_<sub>m</sub><sup>CPU</sup> 的计数器的值来确定 <SPAN style="TEXT-DECORATION: overline">_A_<sub>m</sub><sup>CPU</sup></SPAN>（参见 5.2.1 节）。
-2. 利用 _A_<sub>e</sub><sup>UHCI</sup>、_A_<sub>e</sub><sup>FR</sup>、_A_<sub>e</sub><sup>ME</sup>、_A_<sub>e</sub><sup>HD</sup>、_A_<sub>e</sub><sup>ETH</sup> 和 _A_<sub>e</sub><sup>VC</sup> 等来计算 <SPAN style="TEXT-DECORATION: overline">_A_<sub>e</sub><sup>CPU</sup></SPAN>，这些值来自于所存储的更新过的 I/O 统计数据与所存储的初始 I/O 统计数据之差值。注意，对于我们的实现，我们假设 _A_<sub>e</sub><sup>HD</sup> = 0，_A_<sub>e</sub><sup>ETH</sup> = 0 等。
-3. 比较 <SPAN style="TEXT-DECORATION: overline">_A_<sub>m</sub><sup>CPU</sup></SPAN> 和 <SPAN style="TEXT-DECORATION: overline">_A_<sub>e</sub><sup>CPU</sup></SPAN>，报告结果，并且如有必要则应用某种防御机制。
+1. 利用所存储的对应于 _A_<sub>m</sub> 和 _A_<sub>m</sub><sup>CPU</sup> 的计数器的值来确定 ~~_A_<sub>m</sub><sup>CPU</sup>~~（参见 5.2.1 节）。
+2. 利用 _A_<sub>e</sub><sup>UHCI</sup>、_A_<sub>e</sub><sup>FR</sup>、_A_<sub>e</sub><sup>ME</sup>、_A_<sub>e</sub><sup>HD</sup>、_A_<sub>e</sub><sup>ETH</sup> 和 _A_<sub>e</sub><sup>VC</sup> 等来计算 ~~_A_<sub>e</sub><sup>CPU</sup>~~，这些值来自于所存储的更新过的 I/O 统计数据与所存储的初始 I/O 统计数据之差值。注意，对于我们的实现，我们假设 _A_<sub>e</sub><sup>HD</sup> = 0，_A_<sub>e</sub><sup>ETH</sup> = 0 等。
+3. 比较 ~~_A_<sub>m</sub><sup>CPU</sup>~~ 和 ~~_A_<sub>e</sub><sup>CPU</sup>~~，报告结果，并且如有必要则应用某种防御机制。
 
 #### 容错值
 
